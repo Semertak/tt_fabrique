@@ -1,10 +1,10 @@
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, get_list_or_404
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Poll
-from .serializers import PollSerializer
+from .models import Poll, Question
+from .serializers import PollSerializer, QuestionSerializer
 
 
 class PollView(APIView):
@@ -32,3 +32,10 @@ class PollView(APIView):
         poll = get_object_or_404(Poll.objects.all(), pk=pk)
         poll.delete()
         return Response({"message": "Poll with id `{}` has been deleted.".format(pk)}, status=204)
+
+
+class QuestionsView(APIView):
+    def get(self, request, p_pk):
+        questions = get_list_or_404(Question, poll_id=p_pk)
+        serialized_data = QuestionSerializer(questions, many=True).data
+        return Response({"Questions": serialized_data})

@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from .models import Poll
+from .models import Poll, Question
 
 
 class PollSerializer(serializers.ModelSerializer):
@@ -27,4 +27,15 @@ class PollSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Poll
+        fields = '__all__'
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    text = serializers.CharField()
+    answer_type = serializers.IntegerField()
+    answer_list = serializers.CharField()
+    right_answer = serializers.CharField()
+
+    class Meta:
+        model = Question
         fields = '__all__'
