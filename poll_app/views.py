@@ -54,11 +54,15 @@ class PollView(APIView):
 
 class QuestionsView(APIView):
     def get(self, request, p_pk):
+        # todo Отсутствие вопросов в опросе не должно падать с 404
         questions = get_list_or_404(Question, poll_id=p_pk)
         serialized_data = QuestionSerializer(questions, many=True).data
         return Response({"Questions": serialized_data})
 
     def post(self, request):
+        if not is_request_by_admin(request):
+            raise PermissionDenied()
+
         questions = request.data.get('questions')
         serializer = QuestionSerializer(data=questions)
         if serializer.is_valid(raise_exception=True):
@@ -66,6 +70,9 @@ class QuestionsView(APIView):
             return Response({"success": f'New question Id: {saved_questions.id}, for poll number: {saved_questions.poll_id}'})
 
     def put(self, request, q_pk):
+        if not is_request_by_admin(request):
+            raise PermissionDenied()
+
         old_question = get_object_or_404(Question.objects.all(), pk=q_pk)
         new_data = request.data.get('question')
         serializer = QuestionSerializer(instance=old_question, data=new_data, partial=True)
@@ -74,6 +81,9 @@ class QuestionsView(APIView):
             return Response({"success": "Question '{}' updated successfully".format(saved_questions.id)})
 
     def delete(self, request, q_pk):
+        if not is_request_by_admin(request):
+            raise PermissionDenied()
+
         question = get_object_or_404(Question.objects.all(), pk=q_pk)
         question.delete()
         return Response({"message": "Question with id `{}` has been deleted.".format(q_pk)}, status=204)
