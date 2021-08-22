@@ -1,18 +1,19 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, get_list_or_404
 from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .access_control import is_request_by_admin
 from .models import Poll, Question, Users
 from .serializers import PollSerializer, QuestionSerializer, UsersSerializer
 
 
 class PollView(APIView):
     def get(self, request):
-        token = request.headers.get('Handmade-Token', '')
-        if Users.objects.filter(token=token):
+        if is_request_by_admin(request):
             polls = Poll.objects.all()
         else:
             today = timezone.now().date()
@@ -22,6 +23,9 @@ class PollView(APIView):
         return Response({"Polls": serialized_data})
 
     def post(self, request):
+        if not is_request_by_admin(request):
+            raise PermissionDenied()
+
         poll = request.data.get('poll')
         serializer = PollSerializer(data=poll)
         if serializer.is_valid(raise_exception=True):
@@ -29,6 +33,9 @@ class PollView(APIView):
             return Response({"success": f'New poll Id: {saved_poll.id}, Title: {saved_poll.title}'})
 
     def put(self, request, pk):
+        if not is_request_by_admin(request):
+            raise PermissionDenied()
+
         old_poll = get_object_or_404(Poll.objects.all(), pk=pk)
         new_data = request.data.get('poll')
         serializer = PollSerializer(instance=old_poll, data=new_data, partial=True)
@@ -37,6 +44,9 @@ class PollView(APIView):
             return Response({"success": "Poll '{}' updated successfully".format(saved_poll.title)})
 
     def delete(self, request, pk):
+        if not is_request_by_admin(request):
+            raise PermissionDenied()
+
         poll = get_object_or_404(Poll.objects.all(), pk=pk)
         poll.delete()
         return Response({"message": "Poll with id `{}` has been deleted.".format(pk)}, status=204)
