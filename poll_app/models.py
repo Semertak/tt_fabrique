@@ -38,3 +38,10 @@ class Users(models.Model):
     login = models.TextField(blank=True)
     password = models.TextField(blank=True)
     token = models.TextField(blank=True)
+
+
+# Answers
+class Answers(models.Model):
+    user = models.ForeignKey(Users, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    answer = models.TextField()

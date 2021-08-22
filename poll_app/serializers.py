@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
-from .models import Poll, Question, Users
+from .models import Poll, Question, Users, Answers
 
 
 class PollSerializer(serializers.ModelSerializer):
@@ -54,4 +54,15 @@ class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Users
+        fields = '__all__'
+
+
+class AnswersSerializer(serializers.ModelSerializer):
+    answer = serializers.CharField()
+
+    def create(self, validated_data):
+        return Answers.objects.create(**validated_data)
+
+    class Meta:
+        model = Answers
         fields = '__all__'

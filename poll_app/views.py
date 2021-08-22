@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .access_control import is_request_by_admin
-from .models import Poll, Question, Users
-from .serializers import PollSerializer, QuestionSerializer, UsersSerializer
+from .models import Poll, Question, Users, Answers
+from .serializers import PollSerializer, QuestionSerializer, UsersSerializer, AnswersSerializer
 
 
 class PollView(APIView):
@@ -116,5 +116,24 @@ class UsersView(APIView):
             serializer = UsersSerializer(data={'login': '', 'password': ''})
             if serializer.is_valid(raise_exception=True):
                 saved_user = serializer.save()
-                return Response({"ID": saved_user.id})
+                return Response({"USER_ID": saved_user.id})
 
+
+class AnswersView(APIView):
+    def get(self, request, u_pk):
+        answers = get_list_or_404(Answers, user_id=u_pk)
+        serialized_data = AnswersSerializer(answers, many=True).data
+        for rec in serialized_data:
+            rec['poll'] = Question.objects.get(id=rec['question']).poll.id
+            rec['question_text'] = Question.objects.get(id=rec['question']).text
+        return Response({"Questions": serialized_data})
+
+    def post(self, request, p_pk, q_pk):
+        answer = request.data.get('answer')
+        user_id = request.headers.get('User-Id', None)
+        answer['question'] = q_pk
+        answer['user'] = user_id
+        serializer = AnswersSerializer(data=answer)
+        if serializer.is_valid(raise_exception=True):
+            saved_answer = serializer.save()
+            return Response({"success": f'New answer Id: {saved_answer.id}, for question number: {saved_answer.question_id}'})
