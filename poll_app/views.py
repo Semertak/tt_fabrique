@@ -40,14 +40,14 @@ class QuestionsView(APIView):
         serialized_data = QuestionSerializer(questions, many=True).data
         return Response({"Questions": serialized_data})
 
-    def post(self, request, p_pk):
+    def post(self, request):
         questions = request.data.get('questions')
         serializer = QuestionSerializer(data=questions)
         if serializer.is_valid(raise_exception=True):
             saved_questions = serializer.save()
-            return Response({"success": f'New poll Id: {saved_questions.id}, for poll number: {saved_questions.poll_id}'})
+            return Response({"success": f'New question Id: {saved_questions.id}, for poll number: {saved_questions.poll_id}'})
 
-    def put(self, request, p_pk, q_pk):
+    def put(self, request, q_pk):
         old_question = get_object_or_404(Question.objects.all(), pk=q_pk)
         new_data = request.data.get('question')
         serializer = QuestionSerializer(instance=old_question, data=new_data, partial=True)
@@ -55,7 +55,7 @@ class QuestionsView(APIView):
             saved_questions = serializer.save()
             return Response({"success": "Question '{}' updated successfully".format(saved_questions.id)})
 
-    def delete(self, request, p_pk, q_pk):
+    def delete(self, request, q_pk):
         question = get_object_or_404(Question.objects.all(), pk=q_pk)
         question.delete()
         return Response({"message": "Question with id `{}` has been deleted.".format(q_pk)}, status=204)

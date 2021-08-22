@@ -36,6 +36,9 @@ class QuestionSerializer(serializers.ModelSerializer):
     answer_list = serializers.CharField()
     right_answer = serializers.CharField()
 
+    def create(self, validated_data):
+        return Question.objects.create(**validated_data)
+
     class Meta:
         model = Question
         fields = '__all__'

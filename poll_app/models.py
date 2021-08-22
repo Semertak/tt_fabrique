@@ -26,7 +26,7 @@ class Poll(models.Model):
 
 # Question model
 class Question(models.Model):
-    poll_id = models.ForeignKey(Poll, on_delete=models.CASCADE)
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE)
     text = models.TextField()
     answer_type = models.IntegerField(default=AnswerTypes.single)
     answer_list = models.TextField()
