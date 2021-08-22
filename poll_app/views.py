@@ -57,6 +57,12 @@ class QuestionsView(APIView):
         # todo Отсутствие вопросов в опросе не должно падать с 404
         questions = get_list_or_404(Question, poll_id=p_pk)
         serialized_data = QuestionSerializer(questions, many=True).data
+
+        # Не показывать обычным пользователям правильный ответ
+        if not is_request_by_admin(request):
+            for rec in serialized_data:
+                del rec['right_answer']
+
         return Response({"Questions": serialized_data})
 
     def post(self, request):
