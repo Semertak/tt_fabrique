@@ -1,0 +1,281 @@
+########################
+- Авторизация
+########################
+
+	Метод:	POST
+	Путь:	api/auth/
+	Body:
+		{}
+			или
+		{
+		   "user": {
+				"login": "admin",
+				"password": "123"
+			}
+		}
+	Response:
+		USER_ID
+			или
+		token
+			или
+		{
+		  "error": {
+		    "code": 691,
+		    "message": "Incorrect Login or Password"
+		  }
+		}
+	Комментарий:
+		Метод, в случае успешной авторизации возвращает токен Админа.
+		Если в запрос ничего не передать, то возвращает USER_ID для анонимного пользователя.
+		Если в щапрос передать неправильный Логин или Пароль, вернется 200, но с текстом 691 ошибки.
+============================================
+
+########################
+- CRUD для опросов
+########################
+
+
+	Метод:
+		GET
+	Путь:
+		api/polls/
+	Headers:
+		<string> "Handmade-Token"
+	Body: -
+	Response:
+
+		JSON with Polls information.
+
+		Example:
+			{
+			  "Polls": [
+			    {
+			      "id": 3,
+			      "title": "qqqqq",
+			      "description": "1111111",
+			      "start_date": "2021-08-16",
+			      "end_date": "2021-09-16"
+			    }
+			  ]
+			}
+
+	Комментарий:
+		При наличии верного "Handmade-Token", принадлежащего админу, возвращает информацию о ВСЕХ опросах.
+		Иначе, возвращает только активные опросы.
+
+--------------------------------------------
+
+
+	Метод:
+		POST
+	Путь:
+		api/polls/
+	Headers:
+		<string> "Handmade-Token"
+	Body:
+		Example:
+			{
+			    "poll":
+			        {
+			            "title": "nnnn",
+			            "description": "323232323232",
+			            "start_date": "2021-08-16",
+			            "end_date": "2021-09-16"
+			        }
+			}
+
+	Response:
+		{
+		  "success": "New poll Id: #, Title: nnnn"
+		}
+	Комментарий:
+		Только для Админа.
+
+--------------------------------------------
+
+
+	Метод:
+		PUT
+	Путь:
+		polls/<int:pk>
+	Headers:
+		<string> "Handmade-Token"
+	Body:
+		Example:
+			{
+			    "poll":
+			        {
+			            "title": "nnnn",
+			            "description": "323232323232",
+			            "end_date": "2021-09-16"
+			        }
+			}
+
+	Response:
+		{
+		  "success": "Poll 'nnnn' updated successfully"
+		}
+	Комментарий:
+		Только для Админа.
+		Если передать "start_date" в качестве параметра, вернет 500 с текстом "StartDate is not editable".
+--------------------------------------------
+	Метод:
+		DELETE
+	Путь:
+		polls/<int:pk>
+	Headers:
+		<string> "Handmade-Token"
+	Body:
+	Response:
+		204 No Content
+	Комментарий:
+		Только для Админа
+
+--------------------------------------------
+============================================
+
+########################
+- CRUD для вопросов
+########################
+
+	Метод:
+		GET
+	Путь:
+		polls/<int:p_pk>/questions/
+	Headers:
+		<string> "Handmade-Token"
+	Body:
+	Response:
+		Example:
+			{
+			  "Questions": [
+			    {
+			      "id": 1,
+			      "text": "Некоторый вопрос",
+			      "answer_type": 0,
+			      "answer_list": "{\"1\": \"first\", \"2\": \"second\"}",
+			      "right_answer": "1",
+			      "poll": 3
+			    }
+			  ]
+			}
+	Комментарий:
+		Если не передать валидный админский токен, не возвращает ответы на вопросы.
+--------------------------------------------
+	Метод:
+		POST
+	Путь:
+		api/questions/
+	Headers:
+		<string> "Handmade-Token"
+	Body:
+		Example:
+			{
+				"questions":
+			   {
+			      "poll": 7,
+			      "text": "Очередной первый вопрос добавленный через API",
+			      "answer_type": 1,
+			      "answer_list": "{\"Сам дурак\", \"Неправильно\", \"Акваланг\"}",
+			      "right_answer": "Акваланг, Неправильно"
+			   }
+			}
+	Response:
+		{
+		  "success": "New question Id: #, for poll number: 7"
+		}
+	Комментарий:
+		Только для Админа
+		Разный формат "answer_list" и "right_answer" оправдан ничем. И там и там список строк, поэтому можно как слайсить строку, так и декодить JSON.
+--------------------------------------------
+	Метод:
+		PUT
+	Путь:
+		questions/<int:q_pk>
+	Headers:
+		<string> "Handmade-Token"
+	Body:
+		Example:
+			{
+				"question":
+			   {
+			      "right_answer": "Акваланг, Неправильно"
+			   }
+			}
+	Response:
+		{
+		  "success": "Question <int:q_pk> updated successfully"
+		}
+	Комментарий:
+		Только для Админа
+--------------------------------------------
+
+	Метод:
+		DELETE
+	Путь:
+		questions/<int:q_pk>
+	Headers:
+		<string> "Handmade-Token"
+	Body:
+	Response:
+		204
+	Комментарий:
+		Только для Админа
+
+--------------------------------------------
+============================================
+
+########################
+- Ответы
+########################
+
+	Метод:
+		GET
+	Путь:
+		answers/<int:u_pk>
+	Body:
+	Response:
+		Example:
+			{
+			  "Questions": [
+			    {
+			      "id": 1,
+			      "answer": "Конявр - полуконь полуконь",
+			      "user": 12,
+			      "question": 1,
+			      "poll": 3,
+			      "question_text": "Некоторый вопрос"
+			    },
+			    {
+			      "id": 2,
+			      "answer": "Еще один остроумный ответ",
+			      "user": 12,
+			      "question": 3,
+			      "poll": 3,
+			      "question_text": "Самый первый вопрос добавленный через API"
+			    }
+			  ]
+			}
+	Комментарий:
+		Возращает информаю обо всех ответах, которые дал пользователь с выбранным ID.
+
+--------------------------------------------
+
+	Метод:
+		POST
+	Путь:
+		polls/<int:p_pk>/questions/<int:q_pk>
+	Headers:
+		<int> "User-Id"
+	Body:
+		Example:
+			{
+				"answer":
+				   {
+				      "answer": "Check It"
+				   }
+			}
+	Response:
+		200 или 400, если не передать "User-Id"
+--------------------------------------------
+============================================
