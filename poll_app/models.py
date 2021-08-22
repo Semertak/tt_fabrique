@@ -31,3 +31,10 @@ class Question(models.Model):
     answer_type = models.IntegerField(default=AnswerTypes.single)
     answer_list = models.TextField()
     right_answer = models.TextField()
+
+
+# Users
+class Users(models.Model):
+    login = models.TextField(blank=True)
+    password = models.TextField(blank=True)
+    token = models.TextField(blank=True)

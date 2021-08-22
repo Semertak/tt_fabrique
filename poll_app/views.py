@@ -1,15 +1,23 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, get_list_or_404
+from django.utils import timezone
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Poll, Question
-from .serializers import PollSerializer, QuestionSerializer
+from .models import Poll, Question, Users
+from .serializers import PollSerializer, QuestionSerializer, UsersSerializer
 
 
 class PollView(APIView):
     def get(self, request):
-        polls = Poll.objects.all()
+        token = request.headers.get('Handmade-Token', '')
+        if Users.objects.filter(token=token):
+            polls = Poll.objects.all()
+        else:
+            today = timezone.now().date()
+            polls = Poll.objects.filter(start_date__lte=today, end_date__gte=today)
+
         serialized_data = PollSerializer(polls, many=True).data
         return Response({"Polls": serialized_data})
 
@@ -59,3 +67,28 @@ class QuestionsView(APIView):
         question = get_object_or_404(Question.objects.all(), pk=q_pk)
         question.delete()
         return Response({"message": "Question with id `{}` has been deleted.".format(q_pk)}, status=204)
+
+
+class UsersView(APIView):
+    def post(self, request):
+        user = request.data.get('user', {})
+        if user:
+            try:
+                user_from_db = Users.objects.get(
+                    login=user.get('login'),
+                    password=user.get('password')
+                )
+                return Response({"token": user_from_db.token})
+            except ObjectDoesNotExist:
+                return Response({
+                    "error": {
+                        "code": 691,
+                        "message": "Incorrect Login or Password"
+                    }
+                })
+        else:
+            serializer = UsersSerializer(data={'login': '', 'password': ''})
+            if serializer.is_valid(raise_exception=True):
+                saved_user = serializer.save()
+                return Response({"ID": saved_user.id})
+
